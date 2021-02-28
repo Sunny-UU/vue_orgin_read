@@ -1,10 +1,13 @@
 /* @flow */
 
 // can we use __proto__?
+//判断对象里是否有_proto_
 export const hasProto = '__proto__' in {}
 
 // Browser environment sniffing
+//当前浏览器中有window
 export const inBrowser = typeof window !== 'undefined'
+//当前微信环境不等于undefined 且 有WXEnvironment.platform
 export const inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform
 export const weexPlatform = inWeex && WXEnvironment.platform.toLowerCase()
 export const UA = inBrowser && window.navigator.userAgent.toLowerCase()
@@ -36,15 +39,23 @@ if (inBrowser) {
 
 // this needs to be lazy-evaled because vue may be required before
 // vue-server-renderer can set VUE_ENV
+
+//定义一个变量表示是否对服务平台允许VUE被观察
 let _isServer
+//判断是否延迟评估，在vue-server-render设置VUE_ENV之前可能需要VUE（不能被实例化）
 export const isServerRendering = () => {
+  //如果没有声明在当前平台中VUE是否可以被现在实例化
   if (_isServer === undefined) {
     /* istanbul ignore if */
+    //如果不在浏览器(当前平台中没有window)，且不在微信平台 全局global类型有值，被定义
     if (!inBrowser && !inWeex && typeof global !== 'undefined') {
       // detect presence of vue-server-renderer and avoid
       // Webpack shimming the process
+
+      // 检测 vue-server-renderer 的存在，并避免 webpack 在进程中铺垫（在编译阶段）
       _isServer = global['process'] && global['process'].env.VUE_ENV === 'server'
     } else {
+      //如果是微信，浏览器
       _isServer = false
     }
   }

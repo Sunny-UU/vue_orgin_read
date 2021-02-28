@@ -19,21 +19,21 @@ export default class Dep {
     this.id = uid++
     this.subs = []
   }
-
+  //为值新建依赖数组
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
-
+  //为值移除依赖数组
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
-
+  //添加依赖
   depend () {
     if (Dep.target) {
       Dep.target.addDep(this)
     }
   }
-
+  //通知发生变化
   notify () {
     // stabilize the subscriber list first
     const subs = this.subs.slice()

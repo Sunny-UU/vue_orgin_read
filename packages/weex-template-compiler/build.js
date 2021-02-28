@@ -51,6 +51,8 @@ function toRawType (value) {
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
  */
+// 只对纯 javascript 对象返回 true
+
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
@@ -106,8 +108,11 @@ function remove (arr, item) {
 /**
  * Check whether an object has the property.
  */
+//检查object是否有这个属性
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 function hasOwn (obj, key) {
+  //调用obj.hasOwnProperty(key)  判断当前对象是否有这个属性，有这个属性返回true 没有返回false
+  //将Object.prototype.hasOwnProperty函数的this指向当前obj，并且传入key调用这个方法
   return hasOwnProperty.call(obj, key)
 }
 
