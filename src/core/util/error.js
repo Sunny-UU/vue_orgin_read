@@ -6,14 +6,17 @@ import { inBrowser, inWeex } from './env'
 import { isPromise } from 'shared/util'
 import { pushTarget, popTarget } from '../observer/dep'
 
+//处理错误信息
 export function handleError (err: Error, vm: any, info: string) {
   // Deactivate deps tracking while processing error handler to avoid possible infinite rendering.
   // See: https://github.com/vuejs/vuex/issues/1505
+  // 停用在处理错误处理程序时停用跟踪，以避免可能的无限渲染
   pushTarget()
   try {
     if (vm) {
       let cur = vm
       while ((cur = cur.$parent)) {
+        //捕捉错误
         const hooks = cur.$options.errorCaptured
         if (hooks) {
           for (let i = 0; i < hooks.length; i++) {

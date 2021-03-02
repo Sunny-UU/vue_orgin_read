@@ -4,7 +4,7 @@
  */
 
 import { def } from '../util/index'
-
+//重写数组方法
 const arrayProto = Array.prototype
 export const arrayMethods = Object.create(arrayProto)
 
@@ -23,6 +23,7 @@ const methodsToPatch = [
  */
 methodsToPatch.forEach(function (method) {
   // cache original method
+  //存储重写方法
   const original = arrayProto[method]
   def(arrayMethods, method, function mutator (...args) {
     const result = original.apply(this, args)

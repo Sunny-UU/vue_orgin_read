@@ -39,20 +39,27 @@ export function toggleObserving (value: boolean) {
  */
 
 //当开始编译后，对数据进行监听 Observer
+// observer类会通过递归的方式把一个对象的所有属性都转化成可观测对象
 export class Observer {
   value: any;
   dep: Dep;
+  // 将此对象作为 root $data 的 vm 的数量
   vmCount: number; // number of vms that have this object as root $data
 
   constructor (value: any) {
     this.value = value
+    //实例化一个依赖管理器，生成一个依赖管理数组dep
     //为监听值 新建收集依赖实例
     this.dep = new Dep()
+    //根节点数据vm的数量为0
     this.vmCount = 0
     //defineProperty 对值的属性进行定义，可枚举，可配置，可修改
+    //给value新增一个_ob_属性，值为该value的observer实例
+    //相当于为value打上标记，它已经被转化为相应式
     def(value, '__ob__', this)
     // 如果监听的数据是数组的话 给数组重写方法属性
     if (Array.isArray(value)) {
+      //当value为数组时，对数组添加observer实例
       // 判断是否支持使用proto
       if (hasProto) {
         // 如果支持给这个数组的实例上面添加定义数组
@@ -101,6 +108,7 @@ export class Observer {
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
  */
+//通过使用 _ proto _ 拦截原型链来增强目标对象或数组
 function protoAugment (target, src: Object) {
   /* eslint-disable no-proto */
   //目标的原型指向src
@@ -128,7 +136,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-// 尝试去创建一个 observer实例化后的value值，返回一个new observer 如果成功的被观察
+// 去创建一个 observer实例化后的value值，返回一个new observer 如果成功的被观察
 //或者value已经被实例化
 
 export function observe (value: any, asRootData: ?boolean): Observer | void {
@@ -169,12 +177,12 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 /**
  * Define a reactive property on an Object.
  */
-//定义一个对象的属性
+//定义一个对象的属性 使一个对象转化成可观测对象
 export function defineReactive (
   //传入属性以及属性类型
-  obj: Object,
-  key: string,
-  val: any,
+  obj: Object, //obj对象
+  key: string, //key对象的key
+  val: any,     //val对象的某个key值
   customSetter?: ?Function,
   shallow?: boolean
 ) {
@@ -194,6 +202,7 @@ export function defineReactive (
   //迎合预定义的getter/setter方法
   const getter = property && property.get
   const setter = property && property.set
+  //如果只传入两个值
   // 如果这个值的属性没有getter或者有setter 且只传入obj: Object, key: string,
   if ((!getter || setter) && arguments.length === 2) {
     // val等于当前对象的key属性值
@@ -205,14 +214,13 @@ export function defineReactive (
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-
+    //属性被读取 进行操作
     get: function reactiveGetter () {
-
       //value值等于 将getter的this绑定到obj上调用obj或者已经观察的obj[key]属性的值
       const value = getter ? getter.call(obj) : val
       ///该值是否可以添加依赖
       if (Dep.target) {
-        // 添加依赖
+        // 在getter中收集依赖
         dep.depend()
         // 如果有子属性
         if (childOb) {
@@ -226,6 +234,7 @@ export function defineReactive (
       }
       return value
     },
+    //属性被获取 进行操作
     set: function reactiveSetter (newVal) {
       //如果这个属性存在而且有getter 将 将getter的this指向obj 调用getter并且传入obj 或者 存在getter的obj[key]
       const value = getter ? getter.call(obj) : val
@@ -251,7 +260,7 @@ export function defineReactive (
       }
       //子对象等于非shadow 且 对新值进行实例化，收集依赖
       childOb = !shallow && observe(newVal)
-      //通知更新
+      //在setter中通知依赖更新
       dep.notify()
     }
   })
@@ -265,6 +274,7 @@ export function defineReactive (
 
 // 在对象上设置属性。添加新属性，如果属性不存在，则触发更改通知。
 //重写set Vue.set 为新增元素删除元素提供方法
+//对新增，删除元素的处理
 export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
